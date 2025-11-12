@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Report Exercise App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for aesthetic appeal and bug visibility */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+        }
+        .container {
+            max-width: 600px;
+        }
+        /* Intentionally break responsiveness for the exercise */
+        @media (max-width: 640px) {
+            .buggy-responsive-element {
+                width: 400px; /* Forces horizontal scroll on mobile */
+                margin-left: -50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="container bg-white shadow-xl rounded-xl p-8 w-full">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Customer Feedback Form</h1>
+            <p class="text-gray-500 mb-6">We value your input on our new system.</p>
+
+            <form id="feedbackForm" class="space-y-6">
+                
+                <!-- Name Field -->
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                    <!-- Intentionally narrow width for mobile bug (buggy-responsive-element) -->
+                    <input type="text" id="name" name="name" required
+                           class="buggy-responsive-element p-3 block w-full border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="John Doe">
+                </div>
+
+                <!-- Email Field -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email" id="email" name="email" required
+                           class="buggy-responsive-element p-3 block w-full border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="you@example.com">
+                    <p id="emailError" class="text-red-500 text-sm mt-1 hidden">Please enter a valid email format.</p>
+                </div>
+
+                <!-- Message Field -->
+                <div>
+                    <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Your Message (Min 20 characters)</label>
+                    <textarea id="message" name="message" rows="4" required minlength="20"
+                              class="p-3 block w-full border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Describe your issue or feedback here..."></textarea>
+                </div>
+
+                <!-- Submission Button -->
+                <button type="submit" id="submitButton"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
+                    Submit Feedback
+                </button>
+            </form>
+
+            <!-- Message Box for Feedback -->
+            <div id="messageBox" class="mt-6 p-4 rounded-lg hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const emailInput = document.getElementById('email');
+            const emailError = document.getElementById('emailError');
+            const submitButton = document.getElementById('submitButton');
+            const messageBox = document.getElementById('messageBox');
+            
+            const email = emailInput.value;
+            
+            // BUG 2: Email validation regex is broken (missing mandatory dot)
+            const brokenEmailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w+)+$/; // Correct regex has a dot here: (\.\w+)+$
+            const intentionallyBrokenRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\w+)+$/; 
+            
+            // Check for Bug 2 (Broken Email Validation)
+            if (email && !email.match(intentionallyBrokenRegex)) {
+                emailError.textContent = "Please enter a valid email format (missing dot before domain).";
+                emailError.classList.remove('hidden');
+                return;
+            } else {
+                emailError.classList.add('hidden');
+            }
+
+            // Simulate Loading State
+            submitButton.disabled = true;
+            submitButton.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+            `;
+            
+            // BUG 1 (CRITICAL): Simulate a server-side error and infinite processing loop
+            setTimeout(() => {
+                // Critical Error simulation
+                console.error('Simulated Server Error: Form submission failed due to an internal server timeout.');
+                
+                messageBox.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+                messageBox.classList.add('bg-red-100', 'text-red-800');
+                messageBox.innerHTML = '<strong>Error:</strong> An internal processing error occurred. Your feedback could not be submitted.';
+                
+                // Intentionally DO NOT reset the button state (infinite loading state)
+                // submitButton.disabled = false;
+                // submitButton.innerHTML = 'Submit Feedback';
+
+            }, 2000); // Simulate 2 seconds of loading
+        });
+
+        // Bug 3 (MINOR): Ensure mobile responsiveness issue is visible
+        window.addEventListener('resize', () => {
+             // In a real app, you would fix the CSS, but here we just ensure the bug remains!
+        });
+
+    </script>
+</body>
+</html>
