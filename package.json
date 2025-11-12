@@ -2,7 +2,7 @@
   "name": "contact-form-static",
   "version": "1.0.0",
   "description": "A simple static HTML contact form.",
-  "main": "contact_form.html",
+  "main": "qa-foundation/bugs-exercise/contact_form.html",
   "scripts": {
     "start": "http-server . -p $PORT"
   },
