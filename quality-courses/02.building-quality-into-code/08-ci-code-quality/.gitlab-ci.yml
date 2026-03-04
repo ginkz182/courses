@@ -1,0 +1,33 @@
+stages:
+  - lint
+  - test
+  - build
+  - deploy
+
+lint_job:
+  stage: lint
+  image: node:18
+  script:
+    - npm install
+    - npm run lint
+
+test_job:
+  stage: test
+  image: node:18
+  script:
+    - npm install
+    - npm test
+
+build_job:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build -t my-app:${CI_COMMIT_SHORT_SHA} .
+
+deploy_prod:
+  stage: deploy
+  script:
+    - echo "Deploying to production..."
+  when: manual

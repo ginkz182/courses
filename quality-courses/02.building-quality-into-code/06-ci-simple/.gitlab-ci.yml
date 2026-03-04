@@ -1,0 +1,15 @@
+stages:
+  - test
+  - build
+
+test_job:
+  stage: test
+  image: node:18
+  script:
+    - npm install
+    - npm test
+
+build_job:
+  stage: build
+  script:
+    - echo "Build successful"
