@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1772620859244" clover="3.2.0">
+  <project timestamp="1772620859244" name="All files">
+    <metrics statements="17" coveredstatements="17" conditionals="0" coveredconditionals="0" methods="9" coveredmethods="8" elements="26" coveredelements="25" complexity="0" loc="17" ncloc="17" packages="5" files="5" classes="5"/>
+    <package name="01-refactor-to-testable">
+      <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+      <file name="good_example.js" path="/Users/gink/Documents/QA Course/Github/courses/quality-courses/02.building-quality-into-code/01-refactor-to-testable/good_example.js">
+        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="02-aaa-pattern">
+      <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+      <file name="calculator.js" path="/Users/gink/Documents/QA Course/Github/courses/quality-courses/02.building-quality-into-code/02-aaa-pattern/calculator.js">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="03-avoid-brittle">
+      <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+      <file name="ui.js" path="/Users/gink/Documents/QA Course/Github/courses/quality-courses/02.building-quality-into-code/03-avoid-brittle/ui.js">
+        <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="8" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="04-test-pyramid">
+      <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="3"/>
+      <file name="cart.js" path="/Users/gink/Documents/QA Course/Github/courses/quality-courses/02.building-quality-into-code/04-test-pyramid/cart.js">
+        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="3"/>
+        <line num="3" count="4" type="stmt"/>
+        <line num="8" count="2" type="stmt"/>
+        <line num="11" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="05-write-tests">
+      <metrics statements="4" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="2"/>
+      <file name="good_example.js" path="/Users/gink/Documents/QA Course/Github/courses/quality-courses/02.building-quality-into-code/05-write-tests/good_example.js">
+        <metrics statements="4" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="2"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="7" count="2" type="stmt"/>
+        <line num="14" count="1" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>

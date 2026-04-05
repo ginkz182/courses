@@ -16,7 +16,7 @@ test_job:
   image: node:18
   script:
     - npm install
-    - npm test
+    - npm test -- --coverage --coverageThreshold='{"global":{"lines":80}}'
 
 build_job:
   stage: build
