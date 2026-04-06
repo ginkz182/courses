@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout Shopping Cart — Test Cases</title>
+<style>
+  :root {
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f5f5f3;
+    --color-text-primary: #1a1a18;
+    --color-text-secondary: #6b6b67;
+    --color-border-tertiary: rgba(0,0,0,0.1);
+    --color-border-secondary: rgba(0,0,0,0.18);
+    --color-border-primary: rgba(0,0,0,0.28);
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'SF Mono', 'Fira Code', monospace;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-background-primary: #1a1a18;
+      --color-background-secondary: #242420;
+      --color-text-primary: #f0efe8;
+      --color-text-secondary: #9b9b94;
+      --color-border-tertiary: rgba(255,255,255,0.08);
+      --color-border-secondary: rgba(255,255,255,0.15);
+      --color-border-primary: rgba(255,255,255,0.25);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-background-primary);
+    color: var(--color-text-primary);
+    padding: 2rem;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  h1 { font-size: 20px; font-weight: 500; margin-bottom: 0.25rem; }
+  .subtitle { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1.5rem; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .filter-btn {
+    padding: 5px 14px; font-size: 13px; border-radius: 20px;
+    border: 0.5px solid var(--color-border-secondary);
+    background: var(--color-background-primary);
+    color: var(--color-text-secondary); cursor: pointer; transition: all .15s;
+  }
+  .filter-btn.active, .filter-btn:hover {
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-primary);
+  }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+  .stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: .75rem 1rem; }
+  .stat-num { font-size: 22px; font-weight: 500; }
+  .stat-label { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+  .stat-num.all { color: var(--color-text-primary); }
+  .stat-num.positive { color: #1D9E75; }
+  .stat-num.negative { color: #D85A30; }
+  .stat-num.edge { color: #7F77DD; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { border-bottom: 0.5px solid var(--color-border-secondary); }
+  th { padding: 8px 10px; text-align: left; font-weight: 500; color: var(--color-text-secondary); font-size: 12px; }
+  tbody tr { border-bottom: 0.5px solid var(--color-border-tertiary); transition: background .1s; }
+  tbody tr:hover { background: var(--color-background-secondary); }
+  td { padding: 9px 10px; vertical-align: top; color: var(--color-text-primary); }
+  .tc-id { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-secondary); white-space: nowrap; }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500;
+  }
+  .badge.positive { background: #E1F5EE; color: #0F6E56; }
+  .badge.negative { background: #FAECE7; color: #993C1D; }
+  .badge.edge { background: #EEEDFE; color: #3C3489; }
+  .section-header td {
+    background: var(--color-background-secondary);
+    font-weight: 500; font-size: 12px; color: var(--color-text-secondary);
+    padding: 6px 10px; letter-spacing: .03em;
+  }
+  .expected { color: var(--color-text-secondary); font-size: 12px; }
+  @media (max-width: 600px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    body { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Checkout Shopping Cart</h1>
+<p class="subtitle">Test Cases — QA Reference Sheet</p>
+
+<div class="filters" id="filters">
+  <button class="filter-btn active" onclick="filterBy(this, 'all')">ทั้งหมด</button>
+  <button class="filter-btn" onclick="filterBy(this, 'positive')">Positive</button>
+  <button class="filter-btn" onclick="filterBy(this, 'negative')">Negative</button>
+  <button class="filter-btn" onclick="filterBy(this, 'edge')">Edge case</button>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num all" id="cnt-all">0</div><div class="stat-label">ทั้งหมด</div></div>
+  <div class="stat"><div class="stat-num positive" id="cnt-positive">0</div><div class="stat-label">Positive</div></div>
+  <div class="stat"><div class="stat-num negative" id="cnt-negative">0</div><div class="stat-label">Negative</div></div>
+  <div class="stat"><div class="stat-num edge" id="cnt-edge">0</div><div class="stat-label">Edge case</div></div>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:90px">Test ID</th>
+      <th style="width:200px">Test case</th>
+      <th>Steps</th>
+      <th style="width:180px">Expected result</th>
+      <th style="width:70px">Type</th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+
+<script>
+const data = [
+  { group: "Cart management" },
+  { id:"TC-CO-01", name:"แสดงสินค้าใน cart ถูกต้อง", steps:"1. ใส่สินค้าไว้ใน cart\n2. ไปที่หน้า cart", expected:"แสดงชื่อ, ราคา, จำนวน และรูปสินค้าครบถ้วน", type:"positive" },
+  { id:"TC-CO-02", name:"เปลี่ยนจำนวนสินค้า", steps:"1. ไปที่หน้า cart\n2. เพิ่ม/ลดจำนวนสินค้า", expected:"ยอดรวมอัปเดตทันที", type:"positive" },
+  { id:"TC-CO-03", name:"ลบสินค้าออกจาก cart", steps:"1. กด remove สินค้า", expected:"สินค้าหายออกจากรายการ ราคารวมอัปเดต", type:"positive" },
+  { id:"TC-CO-04", name:"cart ว่างไม่มีสินค้า", steps:"1. เปิด cart ที่ไม่มีสินค้า\n2. กด checkout", expected:"แสดง empty state, ปุ่ม checkout disabled หรือ redirect ไป shop", type:"edge" },
+  { id:"TC-CO-05", name:"ใส่จำนวนสินค้า 0 หรือค่าลบ", steps:"1. แก้ quantity เป็น 0 หรือ -1", expected:"ระบบป้องกัน หรือแสดง error / ลบออกจาก cart แทน", type:"negative" },
+
+  { group: "Order summary & pricing" },
+  { id:"TC-CO-06", name:"คำนวณ subtotal ถูกต้อง", steps:"1. ใส่สินค้าหลายชิ้น\n2. ตรวจ subtotal", expected:"subtotal = ราคา × จำนวน ทุกรายการรวมกัน", type:"positive" },
+  { id:"TC-CO-07", name:"ใส่ coupon code ที่ valid", steps:"1. กรอก coupon code ที่ถูกต้อง\n2. กด apply", expected:"ส่วนลดแสดงใน order summary, ยอดรวมลดลง", type:"positive" },
+  { id:"TC-CO-08", name:"ใส่ coupon code ที่ invalid", steps:"1. กรอก coupon ที่ไม่มีในระบบ\n2. กด apply", expected:"แสดง error message 'coupon ไม่ถูกต้อง'", type:"negative" },
+  { id:"TC-CO-09", name:"ใส่ coupon code ที่หมดอายุ", steps:"1. กรอก coupon ที่หมดอายุ\n2. กด apply", expected:"แสดง error 'coupon หมดอายุแล้ว'", type:"negative" },
+  { id:"TC-CO-10", name:"คำนวณ shipping fee ถูกต้อง", steps:"1. กรอกที่อยู่จัดส่ง\n2. เลือก shipping method", expected:"shipping fee แสดงถูกต้องตามเงื่อนไข", type:"positive" },
+  { id:"TC-CO-11", name:"ยอดซื้อถึงเกณฑ์ฟรีค่าส่ง", steps:"1. ใส่สินค้าให้ยอดถึง minimum\n2. ดู shipping fee", expected:"shipping fee เป็น 0 / แสดงข้อความ 'free shipping'", type:"edge" },
+
+  { group: "Shipping & address" },
+  { id:"TC-CO-12", name:"กรอกที่อยู่จัดส่งครบถ้วน", steps:"1. กรอกข้อมูลที่อยู่ทุก field\n2. กด continue", expected:"ไปหน้าถัดไปได้", type:"positive" },
+  { id:"TC-CO-13", name:"ไม่กรอก required field ในที่อยู่", steps:"1. ปล่อยบาง field ว่าง\n2. กด continue", expected:"แสดง validation error ระบุ field ที่ขาด", type:"negative" },
+  { id:"TC-CO-14", name:"รูปแบบเบอร์โทรไม่ถูกต้อง", steps:"1. กรอกเบอร์โทรไม่ครบ/ผิดรูปแบบ\n2. กด continue", expected:"แสดง error 'รูปแบบเบอร์โทรไม่ถูกต้อง'", type:"negative" },
+  { id:"TC-CO-15", name:"บันทึกที่อยู่สำหรับใช้ครั้งต่อไป", steps:"1. ติ๊ก 'save address'\n2. กด continue", expected:"ที่อยู่ถูกบันทึก และแสดงใน profile", type:"positive" },
+
+  { group: "Payment" },
+  { id:"TC-CO-16", name:"ชำระด้วยบัตรเครดิตที่ valid", steps:"1. กรอกข้อมูลบัตรถูกต้อง\n2. กด place order", expected:"คำสั่งซื้อสำเร็จ, แสดง order confirmation", type:"positive" },
+  { id:"TC-CO-17", name:"บัตรเครดิตหมดอายุ", steps:"1. กรอกวันหมดอายุที่ผ่านมาแล้ว\n2. กด place order", expected:"แสดง error 'บัตรหมดอายุ'", type:"negative" },
+  { id:"TC-CO-18", name:"บัตรถูกปฏิเสธ (declined)", steps:"1. ใช้บัตรที่ simulate declined\n2. กด place order", expected:"แสดง error 'การชำระเงินไม่สำเร็จ' โดย order ยังไม่ถูกสร้าง", type:"negative" },
+  { id:"TC-CO-19", name:"ชำระด้วย e-wallet / QR Code", steps:"1. เลือก payment method เป็น e-wallet\n2. ทำการชำระเงิน", expected:"redirect ไปยัง provider, กลับมา confirm สำเร็จ", type:"positive" },
+  { id:"TC-CO-20", name:"กด back ระหว่างขั้นตอน payment", steps:"1. อยู่หน้า payment\n2. กด browser back", expected:"ข้อมูล cart ยังคงอยู่, ไม่มี duplicate order", type:"edge" },
+
+  { group: "Order confirmation & post-checkout" },
+  { id:"TC-CO-21", name:"แสดง order confirmation หลังสั่งสำเร็จ", steps:"1. ชำระเงินสำเร็จ", expected:"แสดง order ID, รายละเอียดสินค้า, ที่อยู่จัดส่ง", type:"positive" },
+  { id:"TC-CO-22", name:"รับ confirmation email", steps:"1. ชำระเงินสำเร็จ\n2. ตรวจ email", expected:"ได้รับ email ยืนยันคำสั่งซื้อภายใน 5 นาที", type:"positive" },
+  { id:"TC-CO-23", name:"Cart ว่างหลัง checkout สำเร็จ", steps:"1. ชำระเงินสำเร็จ\n2. กลับไป cart", expected:"cart ว่าง ไม่มีสินค้าเหลือ", type:"positive" },
+  { id:"TC-CO-24", name:"สินค้าหมดระหว่าง checkout", steps:"1. สินค้าถูก set เป็น out of stock ขณะ checkout\n2. กด place order", expected:"แสดง error แจ้งสินค้าหมด, ไม่สร้าง order", type:"edge" },
+  { id:"TC-CO-25", name:"Session หมดอายุระหว่าง checkout", steps:"1. รอให้ session expire\n2. กด place order", expected:"redirect ไป login, กลับมา cart ยังคงอยู่", type:"edge" },
+];
+
+let current = 'all';
+
+function filterBy(btn, type) {
+  current = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function render() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  data.forEach(row => {
+    if (row.group) {
+      if (current !== 'all') return;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="section-header" colspan="5">${row.group}</td>`;
+      tbody.appendChild(tr);
+      return;
+    }
+    if (current !== 'all' && row.type !== current) return;
+    const tr = document.createElement('tr');
+    const steps = row.steps.split('\n').map(s => `<div>${s}</div>`).join('');
+    tr.innerHTML = `
+      <td class="tc-id">${row.id}</td>
+      <td style="font-weight:500">${row.name}</td>
+      <td><div style="font-size:12px;color:var(--color-text-secondary);line-height:1.6">${steps}</div></td>
+      <td class="expected">${row.expected}</td>
+      <td><span class="badge ${row.type}">${row.type}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const tc = data.filter(d => d.id);
+  document.getElementById('cnt-all').textContent = tc.length;
+  document.getElementById('cnt-positive').textContent = tc.filter(d => d.type === 'positive').length;
+  document.getElementById('cnt-negative').textContent = tc.filter(d => d.type === 'negative').length;
+  document.getElementById('cnt-edge').textContent = tc.filter(d => d.type === 'edge').length;
+}
+
+render();
+</script>
+</body>
+</html>
