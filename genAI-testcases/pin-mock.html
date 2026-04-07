@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureBank — PIN Management</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0a0f1e;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #3b82f6;
+    --accent2: #06b6d4;
+    --success: #10b981;
+    --error: #ef4444;
+    --warning: #f59e0b;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+
+  /* ── Header ── */
+  .bank-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .bank-logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .bank-name {
+    font-size: 22px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #e2e8f0, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 400px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 28px;
+    gap: 4px;
+  }
+  .tab {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab.active {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  /* ── Section titles ── */
+  .section-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .section-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  /* ── PIN dots ── */
+  .pin-dots {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .pin-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: transparent;
+    transition: all 0.15s;
+  }
+  .pin-dot.filled {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 8px rgba(59,130,246,0.5);
+  }
+
+  /* ── Numpad ── */
+  .numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .num-btn {
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .num-btn:hover { background: var(--border); border-color: var(--accent); }
+  .num-btn:active { transform: scale(0.95); }
+  .num-btn.del { font-size: 14px; color: var(--text-muted); }
+  .num-btn.empty { border: none; background: transparent; cursor: default; }
+
+  /* ── Fields ── */
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+  .field input {
+    width: 100%;
+    padding: 11px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .field input.error-input { border-color: var(--error); }
+
+  /* ── Buttons ── */
+  .btn-primary {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    letter-spacing: 0.3px;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-ghost {
+    width: 100%;
+    padding: 11px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-dim);
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--text); }
+
+  /* ── Toast / Alert ── */
+  .toast {
+    display: none;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+    border: 1px solid;
+  }
+  .toast.show { display: block; }
+  .toast.success { background: rgba(16,185,129,0.1); border-color: var(--success); color: var(--success); }
+  .toast.error   { background: rgba(239,68,68,0.1);  border-color: var(--error);   color: #fca5a5; }
+  .toast.warning { background: rgba(245,158,11,0.1); border-color: var(--warning); color: var(--warning); }
+
+  /* ── OTP ── */
+  .otp-boxes {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .otp-box {
+    width: 46px;
+    height: 52px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .otp-box:focus { border-color: var(--accent); }
+
+  /* ── Step indicator ── */
+  .steps {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+    gap: 0;
+  }
+  .step-item {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+  .step-circle {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    flex-shrink: 0;
+    transition: all 0.3s;
+  }
+  .step-circle.active { border-color: var(--accent); background: var(--accent); color: white; }
+  .step-circle.done   { border-color: var(--success); background: var(--success); color: white; }
+  .step-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    margin: 0 6px;
+  }
+  .step-line.done { background: var(--success); }
+
+  /* ── Attempt counter ── */
+  .attempt-bar {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .attempt-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.2s;
+  }
+  .attempt-dot.used { background: var(--error); }
+
+  /* ── Lock screen ── */
+  .lock-screen {
+    text-align: center;
+    padding: 8px 0;
+  }
+  .lock-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .lock-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .lock-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .countdown {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 28px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  /* ── Test controls (DEV ONLY) ── */
+  .dev-panel {
+    width: 100%;
+    max-width: 400px;
+    margin-top: 24px;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .dev-panel-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .dev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .dev-btn {
+    padding: 8px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+  }
+  .dev-btn:hover { border-color: var(--warning); color: var(--warning); }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── Notification banner ── */
+  .notif-banner {
+    width: 100%;
+    max-width: 400px;
+    margin-top: 12px;
+    background: var(--surface);
+    border: 1px solid var(--success);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: none;
+    animation: slideIn 0.3s ease;
+  }
+  .notif-banner.show { display: flex; gap: 12px; align-items: flex-start; }
+  .notif-icon { font-size: 18px; }
+  .notif-text { font-size: 13px; line-height: 1.5; }
+  .notif-title { font-weight: 600; color: var(--success); margin-bottom: 2px; }
+  .notif-body { color: var(--text-muted); font-size: 12px; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── State display (for Playwright assertions) ── */
+  [data-testid] {}
+</style>
+</head>
+<body>
+
+<div class="bank-header">
+  <div class="bank-logo">Secure Bank</div>
+  <div class="bank-name">PIN Management</div>
+</div>
+
+<div class="card">
+  <!-- Tabs -->
+  <div class="tabs" data-testid="tab-group">
+    <button class="tab active" data-testid="tab-change" onclick="switchTab('change')">เปลี่ยน PIN</button>
+    <button class="tab" data-testid="tab-reset"  onclick="switchTab('reset')">ลืม PIN</button>
+  </div>
+
+  <!-- ═══ PAGE: PIN CHANGE ═══ -->
+  <div id="page-change" class="page active">
+
+    <!-- Toast -->
+    <div id="change-toast" class="toast" data-testid="change-message"></div>
+
+    <!-- Step 1: Enter current PIN -->
+    <div id="change-step1" class="page active">
+      <div class="section-title">กรอก PIN ปัจจุบัน</div>
+      <div class="section-sub">ยืนยันตัวตนก่อนเปลี่ยน PIN</div>
+
+      <!-- Attempt dots -->
+      <div class="attempt-bar" data-testid="attempt-indicator">
+        <div class="attempt-dot" id="a1"></div>
+        <div class="attempt-dot" id="a2"></div>
+        <div class="attempt-dot" id="a3"></div>
+      </div>
+
+      <div class="pin-dots" id="current-dots">
+        <div class="pin-dot" id="cd1"></div><div class="pin-dot" id="cd2"></div>
+        <div class="pin-dot" id="cd3"></div><div class="pin-dot" id="cd4"></div>
+        <div class="pin-dot" id="cd5"></div><div class="pin-dot" id="cd6"></div>
+      </div>
+
+      <div class="numpad" id="numpad-current">
+        <button class="num-btn" onclick="enterCurrentDigit('1')" data-testid="key-1">1</button>
+        <button class="num-btn" onclick="enterCurrentDigit('2')" data-testid="key-2">2</button>
+        <button class="num-btn" onclick="enterCurrentDigit('3')" data-testid="key-3">3</button>
+        <button class="num-btn" onclick="enterCurrentDigit('4')" data-testid="key-4">4</button>
+        <button class="num-btn" onclick="enterCurrentDigit('5')" data-testid="key-5">5</button>
+        <button class="num-btn" onclick="enterCurrentDigit('6')" data-testid="key-6">6</button>
+        <button class="num-btn" onclick="enterCurrentDigit('7')" data-testid="key-7">7</button>
+        <button class="num-btn" onclick="enterCurrentDigit('8')" data-testid="key-8">8</button>
+        <button class="num-btn" onclick="enterCurrentDigit('9')" data-testid="key-9">9</button>
+        <button class="num-btn empty"></button>
+        <button class="num-btn" onclick="enterCurrentDigit('0')" data-testid="key-0">0</button>
+        <button class="num-btn del" onclick="deleteCurrentDigit()" data-testid="key-del">⌫</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Enter new PIN -->
+    <div id="change-step2" class="page">
+      <div class="section-title">กรอก PIN ใหม่</div>
+      <div class="section-sub">PIN ต้องมี 6 หลัก, ไม่เป็นเลขเรียง/ซ้ำ, ไม่ซ้ำกับ 3 ครั้งล่าสุด</div>
+
+      <div class="pin-dots" id="new-dots">
+        <div class="pin-dot" id="nd1"></div><div class="pin-dot" id="nd2"></div>
+        <div class="pin-dot" id="nd3"></div><div class="pin-dot" id="nd4"></div>
+        <div class="pin-dot" id="nd5"></div><div class="pin-dot" id="nd6"></div>
+      </div>
+
+      <div class="numpad">
+        <button class="num-btn" onclick="enterNewDigit('1')">1</button>
+        <button class="num-btn" onclick="enterNewDigit('2')">2</button>
+        <button class="num-btn" onclick="enterNewDigit('3')">3</button>
+        <button class="num-btn" onclick="enterNewDigit('4')">4</button>
+        <button class="num-btn" onclick="enterNewDigit('5')">5</button>
+        <button class="num-btn" onclick="enterNewDigit('6')">6</button>
+        <button class="num-btn" onclick="enterNewDigit('7')">7</button>
+        <button class="num-btn" onclick="enterNewDigit('8')">8</button>
+        <button class="num-btn" onclick="enterNewDigit('9')">9</button>
+        <button class="num-btn empty"></button>
+        <button class="num-btn" onclick="enterNewDigit('0')">0</button>
+        <button class="num-btn del" onclick="deleteNewDigit()">⌫</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Confirm new PIN -->
+    <div id="change-step3" class="page">
+      <div class="section-title">ยืนยัน PIN ใหม่</div>
+      <div class="section-sub">กรอก PIN ใหม่อีกครั้งเพื่อยืนยัน</div>
+
+      <div class="pin-dots" id="confirm-dots">
+        <div class="pin-dot" id="cod1"></div><div class="pin-dot" id="cod2"></div>
+        <div class="pin-dot" id="cod3"></div><div class="pin-dot" id="cod4"></div>
+        <div class="pin-dot" id="cod5"></div><div class="pin-dot" id="cod6"></div>
+      </div>
+
+      <div class="numpad">
+        <button class="num-btn" onclick="enterConfirmDigit('1')">1</button>
+        <button class="num-btn" onclick="enterConfirmDigit('2')">2</button>
+        <button class="num-btn" onclick="enterConfirmDigit('3')">3</button>
+        <button class="num-btn" onclick="enterConfirmDigit('4')">4</button>
+        <button class="num-btn" onclick="enterConfirmDigit('5')">5</button>
+        <button class="num-btn" onclick="enterConfirmDigit('6')">6</button>
+        <button class="num-btn" onclick="enterConfirmDigit('7')">7</button>
+        <button class="num-btn" onclick="enterConfirmDigit('8')">8</button>
+        <button class="num-btn" onclick="enterConfirmDigit('9')">9</button>
+        <button class="num-btn empty"></button>
+        <button class="num-btn" onclick="enterConfirmDigit('0')">0</button>
+        <button class="num-btn del" onclick="deleteConfirmDigit()">⌫</button>
+      </div>
+    </div>
+
+    <!-- Lock screen: Temporary -->
+    <div id="change-lock-temp" class="page">
+      <div class="lock-screen">
+        <span class="lock-icon">🔒</span>
+        <div class="lock-title" data-testid="lock-title">PIN ถูกระงับชั่วคราว</div>
+        <div class="lock-desc" data-testid="lock-description">กรอก PIN ผิดเกินกำหนด<br>กรุณารอ 15 นาทีแล้วลองใหม่</div>
+        <div class="countdown" id="countdown-timer" data-testid="lock-countdown">15:00</div>
+        <div style="font-size:12px;color:var(--text-muted);">นาที : วินาที</div>
+      </div>
+    </div>
+
+    <!-- Lock screen: Permanent -->
+    <div id="change-lock-perm" class="page">
+      <div class="lock-screen">
+        <span class="lock-icon">🔐</span>
+        <div class="lock-title" data-testid="lock-permanent-title">PIN ถูกระงับถาวร</div>
+        <div class="lock-desc" data-testid="lock-permanent-description">บัญชีของคุณถูกล็อกเนื่องจากกรอก PIN ผิดหลายครั้ง<br>กรุณา Reset PIN เพื่อดำเนินการต่อ</div>
+        <button class="btn-primary" data-testid="btn-go-reset" onclick="switchTab('reset')">Reset PIN</button>
+      </div>
+    </div>
+
+  </div><!-- /page-change -->
+
+  <!-- ═══ PAGE: PIN RESET ═══ -->
+  <div id="page-reset" class="page">
+
+    <!-- Steps indicator -->
+    <div class="steps">
+      <div class="step-item">
+        <div class="step-circle active" id="rst-s1" data-testid="reset-step-1">1</div>
+        <div class="step-line" id="rst-l1"></div>
+      </div>
+      <div class="step-item">
+        <div class="step-circle" id="rst-s2" data-testid="reset-step-2">2</div>
+        <div class="step-line" id="rst-l2"></div>
+      </div>
+      <div class="step-item">
+        <div class="step-circle" id="rst-s3" data-testid="reset-step-3">3</div>
+        <div class="step-line" id="rst-l3"></div>
+      </div>
+      <div class="step-item">
+        <div class="step-circle" id="rst-s4" data-testid="reset-step-4">4</div>
+      </div>
+    </div>
+
+    <div id="reset-toast" class="toast" data-testid="reset-message"></div>
+
+    <!-- Reset Step 1: Account verification -->
+    <div id="reset-step1" class="page active">
+      <div class="section-title">ยืนยันตัวตน</div>
+      <div class="section-sub">กรอกเลขบัตรประชาชนหรือเลขบัญชีของคุณ</div>
+      <div class="field">
+        <label>เลขบัตรประชาชน / เลขบัญชี</label>
+        <input type="text" id="account-input" data-testid="account-input" placeholder="กรอกเลข 13 หลัก" maxlength="13"/>
+      </div>
+      <button class="btn-primary" data-testid="btn-verify-account" onclick="verifyAccount()">ยืนยัน</button>
+    </div>
+
+    <!-- Reset Step 2: OTP -->
+    <div id="reset-step2" class="page">
+      <div class="section-title">กรอก OTP</div>
+      <div class="section-sub" data-testid="otp-sent-message">ระบบส่ง OTP 6 หลักไปยัง<br>SMS เบอร์ที่ลงทะเบียนไว้แล้ว</div>
+      <div class="otp-boxes">
+        <input class="otp-box" data-testid="otp-1" maxlength="1" oninput="otpInput(this,1)" />
+        <input class="otp-box" data-testid="otp-2" maxlength="1" oninput="otpInput(this,2)" />
+        <input class="otp-box" data-testid="otp-3" maxlength="1" oninput="otpInput(this,3)" />
+        <input class="otp-box" data-testid="otp-4" maxlength="1" oninput="otpInput(this,4)" />
+        <input class="otp-box" data-testid="otp-5" maxlength="1" oninput="otpInput(this,5)" />
+        <input class="otp-box" data-testid="otp-6" maxlength="1" oninput="otpInput(this,6)" />
+      </div>
+      <button class="btn-primary" data-testid="btn-verify-otp" onclick="verifyOTP()">ยืนยัน OTP</button>
+      <button class="btn-ghost" data-testid="btn-resend-otp" onclick="resendOTP()">ส่ง OTP อีกครั้ง</button>
+    </div>
+
+    <!-- Reset Step 3: Biometric -->
+    <div id="reset-step3" class="page">
+      <div class="section-title">ยืนยัน Biometric</div>
+      <div class="section-sub">สแกนใบหน้าหรือลายนิ้วมือเพื่อยืนยันตัวตน</div>
+      <div style="text-align:center;margin:24px 0;">
+        <div style="width:90px;height:90px;border-radius:50%;border:2px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:16px;" data-testid="biometric-icon">👤</div>
+        <div style="font-size:13px;color:var(--text-muted);" data-testid="biometric-status">พร้อมสแกน</div>
+      </div>
+      <button class="btn-primary" data-testid="btn-scan-biometric" onclick="scanBiometric()">สแกนตอนนี้</button>
+      <button class="btn-ghost" data-testid="btn-biometric-fail" onclick="biometricFail()" style="color:var(--error);border-color:var(--error);">จำลอง: Biometric ล้มเหลว</button>
+    </div>
+
+    <!-- Reset Step 4: Set new PIN -->
+    <div id="reset-step4" class="page">
+      <div class="section-title">ตั้ง PIN ใหม่</div>
+      <div class="section-sub">ตั้ง PIN 6 หลักใหม่ของคุณ</div>
+
+      <div class="pin-dots" id="new-reset-dots">
+        <div class="pin-dot" id="rnd1"></div><div class="pin-dot" id="rnd2"></div>
+        <div class="pin-dot" id="rnd3"></div><div class="pin-dot" id="rnd4"></div>
+        <div class="pin-dot" id="rnd5"></div><div class="pin-dot" id="rnd6"></div>
+      </div>
+
+      <div class="numpad">
+        <button class="num-btn" onclick="enterResetNewDigit('1')">1</button>
+        <button class="num-btn" onclick="enterResetNewDigit('2')">2</button>
+        <button class="num-btn" onclick="enterResetNewDigit('3')">3</button>
+        <button class="num-btn" onclick="enterResetNewDigit('4')">4</button>
+        <button class="num-btn" onclick="enterResetNewDigit('5')">5</button>
+        <button class="num-btn" onclick="enterResetNewDigit('6')">6</button>
+        <button class="num-btn" onclick="enterResetNewDigit('7')">7</button>
+        <button class="num-btn" onclick="enterResetNewDigit('8')">8</button>
+        <button class="num-btn" onclick="enterResetNewDigit('9')">9</button>
+        <button class="num-btn empty"></button>
+        <button class="num-btn" onclick="enterResetNewDigit('0')">0</button>
+        <button class="num-btn del" onclick="deleteResetNewDigit()">⌫</button>
+      </div>
+    </div>
+
+    <!-- Reset Success -->
+    <div id="reset-success" class="page">
+      <div class="lock-screen">
+        <span class="lock-icon">✅</span>
+        <div class="lock-title" data-testid="reset-success-title">Reset PIN สำเร็จ</div>
+        <div class="lock-desc" data-testid="reset-success-description">PIN ของคุณถูกเปลี่ยนเรียบร้อยแล้ว<br>Session เก่าทั้งหมดถูก invalidate แล้ว</div>
+        <button class="btn-primary" data-testid="btn-back-to-login" onclick="resetAll()">กลับหน้าหลัก</button>
+      </div>
+    </div>
+
+  </div><!-- /page-reset -->
+</div><!-- /card -->
+
+<!-- ═══ ASSERTION PANEL (visible to Playwright, readable by user) ═══ -->
+<div style="width:100%;max-width:400px;margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;">
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-bottom:12px;">📊 System Status</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
+
+    <div style="background:var(--bg);border-radius:8px;padding:10px;">
+      <div style="color:var(--text-muted);margin-bottom:4px;font-size:11px;">Wrong Attempts</div>
+      <div data-testid="status-wrong-attempts" style="font-family:'IBM Plex Mono',monospace;color:var(--text);font-size:16px;font-weight:600;">0 / 3</div>
+    </div>
+
+    <div style="background:var(--bg);border-radius:8px;padding:10px;">
+      <div style="color:var(--text-muted);margin-bottom:4px;font-size:11px;">PIN Lock Status</div>
+      <div data-testid="status-lock" style="font-family:'IBM Plex Mono',monospace;color:var(--success);font-size:13px;font-weight:600;">unlocked</div>
+    </div>
+
+    <div style="background:var(--bg);border-radius:8px;padding:10px;">
+      <div style="color:var(--text-muted);margin-bottom:4px;font-size:11px;">Session Status</div>
+      <div data-testid="status-session" style="font-family:'IBM Plex Mono',monospace;color:var(--success);font-size:13px;font-weight:600;">active</div>
+    </div>
+
+    <div style="background:var(--bg);border-radius:8px;padding:10px;">
+      <div style="color:var(--text-muted);margin-bottom:4px;font-size:11px;">Last Action</div>
+      <div data-testid="status-last-action" style="font-family:'IBM Plex Mono',monospace;color:var(--text-dim);font-size:11px;">—</div>
+    </div>
+
+    <div style="background:var(--bg);border-radius:8px;padding:10px;grid-column:span 2;">
+      <div style="color:var(--text-muted);margin-bottom:4px;font-size:11px;">PIN Validation Error</div>
+      <div data-testid="status-validation-error" style="font-family:'IBM Plex Mono',monospace;color:var(--error);font-size:11px;min-height:16px;">—</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Notification Banner -->
+<div class="notif-banner" id="notification" data-testid="notification-banner">
+  <div class="notif-icon">🔔</div>
+  <div class="notif-text">
+    <div class="notif-title" data-testid="notification-title"></div>
+    <div class="notif-body" data-testid="notification-body"></div>
+  </div>
+</div>
+
+<!-- DEV Panel -->
+<div class="dev-panel">
+  <div class="dev-panel-title">🛠 Dev / Test Controls</div>
+  <div class="dev-grid">
+    <button class="dev-btn" data-testid="dev-reset-state"    onclick="resetAll()">Reset All State</button>
+    <button class="dev-btn" data-testid="dev-set-2-attempts" onclick="setAttempts(2)">Set 2 Attempts Used</button>
+    <button class="dev-btn" data-testid="dev-trigger-temp-lock"  onclick="triggerTempLock()">Trigger Temp Lock</button>
+    <button class="dev-btn" data-testid="dev-trigger-perm-lock"  onclick="triggerPermLock()">Trigger Perm Lock</button>
+    <button class="dev-btn" data-testid="dev-skip-to-otp"    onclick="skipToOTP()">Skip to OTP Step</button>
+    <button class="dev-btn" data-testid="dev-skip-to-biometric" onclick="skipToBiometric()">Skip to Biometric</button>
+    <button class="dev-btn" data-testid="dev-set-pin-history" onclick="setPinHistory()">Set PIN History</button>
+    <button class="dev-btn" data-testid="dev-show-notification" onclick="showNotification('PIN เปลี่ยนสำเร็จ','หากคุณไม่ได้ดำเนินการนี้ กรุณากด รายงานปัญหา')">Show Notification</button>
+  </div>
+</div>
+
+<script>
+// ── Status panel updater ──
+function updateStatusPanel(lastAction, validationError) {
+  // Wrong attempts
+  const totalWrong = state.wrongAttempts;
+  document.querySelector('[data-testid="status-wrong-attempts"]').textContent =
+    `${totalWrong} / 3`;
+
+  // Lock status
+  const lockEl = document.querySelector('[data-testid="status-lock"]');
+  if (state.permLocked) {
+    lockEl.textContent = 'permanent-lock';
+    lockEl.style.color = 'var(--error)';
+  } else if (state.tempLocked) {
+    lockEl.textContent = 'temp-lock-15min';
+    lockEl.style.color = 'var(--warning)';
+  } else {
+    lockEl.textContent = 'unlocked';
+    lockEl.style.color = 'var(--success)';
+  }
+
+  // Last action
+  if (lastAction) {
+    document.querySelector('[data-testid="status-last-action"]').textContent = lastAction;
+  }
+
+  // Validation error
+  const errEl = document.querySelector('[data-testid="status-validation-error"]');
+  errEl.textContent = validationError || '—';
+}
+
+// ── State ──
+const CORRECT_PIN = '123456';
+const VALID_OTP   = '123456';
+const PIN_HISTORY = ['111111', '222222', '333333']; // last 3 PINs
+
+let state = {
+  currentInput: '',
+  newInput: '',
+  confirmInput: '',
+  resetNewInput: '',
+  wrongAttempts: 0,       // current session wrong attempts
+  totalWrong: 0,          // cumulative (for 3+3 logic)
+  tempLocked: false,
+  permLocked: false,
+  pinHistory: [...PIN_HISTORY],
+  otpInput: '',
+  changeStep: 1,
+  resetStep: 1,
+};
+
+// ── Tab switch ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-testid="tab-${tab}"]`).classList.add('active');
+  document.getElementById('page-change').classList.toggle('active', tab === 'change');
+  document.getElementById('page-reset').classList.toggle('active', tab === 'reset');
+}
+
+// ── Show toast ──
+function showToast(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = `toast show ${type}`;
+  el.setAttribute('data-testid', id === 'change-toast' ? 'change-message' : 'reset-message');
+}
+function clearToast(id) {
+  const el = document.getElementById(id);
+  el.className = 'toast';
+  el.textContent = '';
+}
+
+// ── Notification ──
+function showNotification(title, body) {
+  document.getElementById('notification').classList.add('show');
+  document.querySelector('[data-testid="notification-title"]').textContent = title;
+  document.querySelector('[data-testid="notification-body"]').textContent = body;
+}
+
+// ── Update pin dots ──
+function updateDots(prefix, count, n) {
+  for (let i = 1; i <= n; i++) {
+    document.getElementById(`${prefix}${i}`)?.classList.toggle('filled', i <= count);
+  }
+}
+
+// ═══════════════════════════════════════════
+// ── PIN CHANGE FLOW ──
+// ═══════════════════════════════════════════
+function showChangeStep(n) {
+  ['change-step1','change-step2','change-step3','change-lock-temp','change-lock-perm']
+    .forEach(id => document.getElementById(id).classList.remove('active'));
+
+  const map = {1:'change-step1',2:'change-step2',3:'change-step3','lock-temp':'change-lock-temp','lock-perm':'change-lock-perm'};
+  document.getElementById(map[n]).classList.add('active');
+  state.changeStep = n;
+}
+
+function updateAttemptDots() {
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById(`a${i}`).classList.toggle('used', i <= state.wrongAttempts);
+  }
+}
+
+// Current PIN entry
+function enterCurrentDigit(d) {
+  if (state.currentInput.length >= 6 || state.tempLocked || state.permLocked) return;
+  state.currentInput += d;
+  updateDots('cd', state.currentInput.length, 6);
+  if (state.currentInput.length === 6) verifyCurrentPIN();
+}
+function deleteCurrentDigit() {
+  state.currentInput = state.currentInput.slice(0, -1);
+  updateDots('cd', state.currentInput.length, 6);
+}
+
+function verifyCurrentPIN() {
+  clearToast('change-toast');
+  if (state.currentInput === CORRECT_PIN) {
+    state.wrongAttempts = 0;
+    state.currentInput = '';
+    updateDots('cd', 0, 6);
+    updateAttemptDots();
+    updateStatusPanel('current-pin-verified', null);
+    showChangeStep(2);
+  } else {
+    state.wrongAttempts++;
+    state.totalWrong++;
+    state.currentInput = '';
+    updateDots('cd', 0, 6);
+    updateAttemptDots();
+
+    if (state.wrongAttempts >= 3 && state.totalWrong < 6) {
+      triggerTempLock();
+      updateStatusPanel('wrong-pin-attempt-3', null);
+    } else if (state.totalWrong >= 6) {
+      triggerPermLock();
+      updateStatusPanel('wrong-pin-attempt-6-permanent', null);
+    } else {
+      const left = 3 - state.wrongAttempts;
+      showToast('change-toast', `PIN ไม่ถูกต้อง เหลืออีก ${left} ครั้ง`, 'error');
+      updateStatusPanel(`wrong-pin-attempt-${state.wrongAttempts}`, null);
+    }
+  }
+}
+
+// New PIN entry
+function validateNewPIN(pin) {
+  if (pin.length !== 6) return { ok: false, msg: 'PIN ต้องมี 6 หลัก' };
+  if (/^(.)\1+$/.test(pin)) return { ok: false, msg: 'PIN ไม่สามารถใช้ตัวเลขซ้ำกันทั้งหมดได้ (เช่น 111111)' };
+  const seqAsc  = '0123456789';
+  const seqDesc = '9876543210';
+  for (let i = 0; i <= 4; i++) {
+    if (seqAsc.includes(pin) || seqDesc.includes(pin))
+      return { ok: false, msg: 'PIN ไม่สามารถใช้เลขเรียงได้ (เช่น 123456)' };
+  }
+  if (state.pinHistory.includes(pin))
+    return { ok: false, msg: 'PIN ไม่สามารถซ้ำกับ 3 ครั้งล่าสุดได้' };
+  return { ok: true };
+}
+
+function enterNewDigit(d) {
+  if (state.newInput.length >= 6) return;
+  state.newInput += d;
+  updateDots('nd', state.newInput.length, 6);
+  if (state.newInput.length === 6) validateNewStep();
+}
+function deleteNewDigit() {
+  state.newInput = state.newInput.slice(0, -1);
+  updateDots('nd', state.newInput.length, 6);
+}
+function validateNewStep() {
+  const v = validateNewPIN(state.newInput);
+  if (!v.ok) {
+    showToast('change-toast', v.msg, 'error');
+    updateStatusPanel('new-pin-validation-failed', v.msg);
+    setTimeout(() => { state.newInput = ''; updateDots('nd', 0, 6); clearToast('change-toast'); }, 1500);
+    return;
+  }
+  updateStatusPanel('new-pin-accepted', null);
+  showChangeStep(3);
+}
+
+// Confirm PIN entry
+function enterConfirmDigit(d) {
+  if (state.confirmInput.length >= 6) return;
+  state.confirmInput += d;
+  updateDots('cod', state.confirmInput.length, 6);
+  if (state.confirmInput.length === 6) confirmNewPIN();
+}
+function deleteConfirmDigit() {
+  state.confirmInput = state.confirmInput.slice(0, -1);
+  updateDots('cod', state.confirmInput.length, 6);
+}
+function confirmNewPIN() {
+  if (state.confirmInput !== state.newInput) {
+    showToast('change-toast', 'PIN ไม่ตรงกัน กรุณากรอกใหม่', 'error');
+    setTimeout(() => {
+      state.confirmInput = '';
+      updateDots('cod', 0, 6);
+      clearToast('change-toast');
+    }, 1500);
+    return;
+  }
+  // Success
+  state.pinHistory.unshift(state.newInput);
+  if (state.pinHistory.length > 3) state.pinHistory.pop();
+  showToast('change-toast', 'เปลี่ยน PIN สำเร็จแล้ว!', 'success');
+  showNotification('เปลี่ยน PIN สำเร็จ', 'หากคุณไม่ได้ดำเนินการนี้ กรุณากด รายงานปัญหา');
+  state.newInput = '';
+  state.confirmInput = '';
+  setTimeout(() => { showChangeStep(1); clearToast('change-toast'); }, 2000);
+}
+
+// Lock
+function triggerTempLock() {
+  state.tempLocked = true;
+  showChangeStep('lock-temp');
+  startCountdown();
+}
+function triggerPermLock() {
+  state.permLocked = true;
+  showChangeStep('lock-perm');
+}
+function startCountdown() {
+  let secs = 15 * 60;
+  const el = document.getElementById('countdown-timer');
+  const tick = setInterval(() => {
+    secs--;
+    const m = String(Math.floor(secs/60)).padStart(2,'0');
+    const s = String(secs%60).padStart(2,'0');
+    el.textContent = `${m}:${s}`;
+    if (secs <= 0) {
+      clearInterval(tick);
+      state.tempLocked = false;
+      state.wrongAttempts = 0;
+      updateAttemptDots();
+      showChangeStep(1);
+    }
+  }, 1000);
+}
+
+// ═══════════════════════════════════════════
+// ── PIN RESET FLOW ──
+// ═══════════════════════════════════════════
+function showResetStep(n) {
+  ['reset-step1','reset-step2','reset-step3','reset-step4','reset-success']
+    .forEach(id => document.getElementById(id).classList.remove('active'));
+
+  const map = {1:'reset-step1',2:'reset-step2',3:'reset-step3',4:'reset-step4','success':'reset-success'};
+  document.getElementById(map[n]).classList.add('active');
+
+  // Update step circles
+  for (let i = 1; i <= 4; i++) {
+    const c = document.getElementById(`rst-s${i}`);
+    const l = document.getElementById(`rst-l${i}`);
+    const step = typeof n === 'number' ? n : 5;
+    c?.classList.toggle('active', i === step);
+    c?.classList.toggle('done',   i < step);
+    l?.classList.toggle('done',   i < step);
+  }
+}
+
+function verifyAccount() {
+  const val = document.getElementById('account-input').value.trim();
+  if (val.length < 10) {
+    showToast('reset-toast', 'กรุณากรอกเลขบัตร/บัญชีให้ครบถ้วน', 'error');
+    return;
+  }
+  clearToast('reset-toast');
+  showResetStep(2);
+}
+
+function otpInput(el, idx) {
+  if (el.value.length === 1 && idx < 6) {
+    document.querySelector(`[data-testid="otp-${idx+1}"]`)?.focus();
+  }
+}
+
+function verifyOTP() {
+  const otp = [1,2,3,4,5,6].map(i => document.querySelector(`[data-testid="otp-${i}"]`).value).join('');
+  if (otp === VALID_OTP) {
+    clearToast('reset-toast');
+    showResetStep(3);
+  } else {
+    showToast('reset-toast', 'OTP ไม่ถูกต้อง กรุณาลองใหม่', 'error');
+  }
+}
+
+function resendOTP() {
+  showToast('reset-toast', 'ส่ง OTP ใหม่แล้ว กรุณาตรวจสอบ SMS', 'warning');
+}
+
+function scanBiometric() {
+  const icon = document.querySelector('[data-testid="biometric-icon"]');
+  const status = document.querySelector('[data-testid="biometric-status"]');
+  icon.textContent = '⏳';
+  status.textContent = 'กำลังสแกน...';
+  setTimeout(() => {
+    icon.textContent = '✅';
+    status.textContent = 'ยืนยันสำเร็จ';
+    setTimeout(() => showResetStep(4), 800);
+  }, 1500);
+}
+
+function biometricFail() {
+  const icon = document.querySelector('[data-testid="biometric-icon"]');
+  const status = document.querySelector('[data-testid="biometric-status"]');
+  icon.textContent = '❌';
+  status.textContent = 'สแกนไม่สำเร็จ';
+  showToast('reset-toast', 'Biometric ล้มเหลว กรุณาลองใหม่', 'error');
+  setTimeout(() => {
+    icon.textContent = '👤';
+    status.textContent = 'พร้อมสแกน';
+    clearToast('reset-toast');
+  }, 2000);
+}
+
+// New PIN after reset
+function enterResetNewDigit(d) {
+  if (state.resetNewInput.length >= 6) return;
+  state.resetNewInput += d;
+  updateDots('rnd', state.resetNewInput.length, 6);
+  if (state.resetNewInput.length === 6) submitResetPIN();
+}
+function deleteResetNewDigit() {
+  state.resetNewInput = state.resetNewInput.slice(0, -1);
+  updateDots('rnd', state.resetNewInput.length, 6);
+}
+function submitResetPIN() {
+  const v = validateNewPIN(state.resetNewInput);
+  if (!v.ok) {
+    showToast('reset-toast', v.msg, 'error');
+    updateStatusPanel('reset-pin-validation-failed', v.msg);
+    setTimeout(() => { state.resetNewInput = ''; updateDots('rnd', 0, 6); clearToast('reset-toast'); }, 1500);
+    return;
+  }
+  state.pinHistory.unshift(state.resetNewInput);
+  if (state.pinHistory.length > 3) state.pinHistory.pop();
+  state.permLocked = false;
+  state.tempLocked = false;
+  state.totalWrong = 0;
+  state.wrongAttempts = 0;
+  // Mark session as invalidated — assertable by Playwright
+  document.querySelector('[data-testid="status-session"]').textContent = 'invalidated';
+  document.querySelector('[data-testid="status-session"]').style.color = 'var(--warning)';
+  showNotification('Reset PIN สำเร็จ', 'Session เก่าทั้งหมดถูก invalidate แล้ว');
+  updateStatusPanel('reset-complete-session-invalidated', null);
+  showResetStep('success');
+}
+
+// ═══════════════════════════════════════════
+// ── Dev helpers (for Playwright control) ──
+// ═══════════════════════════════════════════
+function resetAll() {
+  state = {
+    currentInput:'', newInput:'', confirmInput:'', resetNewInput:'',
+    wrongAttempts:0, totalWrong:0, tempLocked:false, permLocked:false,
+    pinHistory:[...PIN_HISTORY], otpInput:'', changeStep:1, resetStep:1
+  };
+  updateAttemptDots();
+  updateDots('cd',0,6); updateDots('nd',0,6); updateDots('cod',0,6); updateDots('rnd',0,6);
+  clearToast('change-toast'); clearToast('reset-toast');
+  document.getElementById('notification').classList.remove('show');
+  // Reset session status display
+  const sessionEl = document.querySelector('[data-testid="status-session"]');
+  sessionEl.textContent = 'active';
+  sessionEl.style.color = 'var(--success)';
+  updateStatusPanel('state-reset', null);
+  showChangeStep(1);
+  showResetStep(1);
+  document.getElementById('account-input').value = '';
+  [1,2,3,4,5,6].forEach(i => {
+    const el = document.querySelector(`[data-testid="otp-${i}"]`);
+    if(el) el.value = '';
+  });
+  switchTab('change');
+}
+
+function setAttempts(n) {
+  state.wrongAttempts = n;
+  state.totalWrong = n;
+  updateAttemptDots();
+}
+function setPinHistory() {
+  state.pinHistory = ['654321', '789012', '345678'];
+  showToast('change-toast', 'PIN history set: 654321, 789012, 345678', 'warning');
+  setTimeout(() => clearToast('change-toast'), 2000);
+}
+function skipToOTP() {
+  switchTab('reset');
+  showResetStep(2);
+}
+function skipToBiometric() {
+  switchTab('reset');
+  showResetStep(3);
+}
+
+// Expose state for Playwright page.evaluate()
+window.__testState = () => ({ ...state });
+window.__testOTP = () => VALID_OTP;
+window.__testCorrectPIN = () => CORRECT_PIN;
+</script>
+</body>
+</html>
